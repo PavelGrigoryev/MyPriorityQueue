@@ -3,6 +3,7 @@ package ru.clevertec.mypriorityqueue;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Optional;
 
 @SuppressWarnings("unchecked")
 public class MyPriorityQueueImpl<E> implements MyPriorityQueue<E> {
@@ -24,55 +25,70 @@ public class MyPriorityQueueImpl<E> implements MyPriorityQueue<E> {
     }
 
     public MyPriorityQueueImpl(int capacity) {
-        if (capacity <= 0) {
-            throw new IllegalArgumentException("Capacity must be greater than 0 !");
-        }
-        queue = new Object[capacity];
-        size = 0;
+        Optional.of(capacity)
+                .filter(integer -> integer > 0)
+                .ifPresentOrElse(integer -> {
+                    queue = new Object[integer];
+                    size = 0;
+                }, () -> {
+                    throw new IllegalArgumentException("Capacity must be greater than 0 !");
+                });
     }
 
     public MyPriorityQueueImpl(int capacity, Comparator<? super E> comparator) {
-        if (capacity <= 0) {
-            throw new IllegalArgumentException("Capacity must be greater than 0 !");
-        }
-        queue = new Object[capacity];
-        size = 0;
-        this.comparator = comparator;
+        Optional.of(capacity)
+                .filter(integer -> integer > 0)
+                .ifPresentOrElse(integer -> {
+                    queue = new Object[integer];
+                    size = 0;
+                    this.comparator = comparator;
+                }, () -> {
+                    throw new IllegalArgumentException("Capacity must be greater than 0 !");
+                });
     }
 
     @Override
     public boolean add(E element) {
-        if (element == null) {
-            throw new NullPointerException("Can't store null elements!");
-        }
-        if (size == queue.length) {
-            queue = Arrays.copyOf(queue, queue.length * 2);
-        }
-        queue[size] = element;
-        size++;
-        siftUp(size - 1);
+        Optional.ofNullable(element)
+                .ifPresentOrElse(e -> {
+                    if (size == queue.length) {
+                        queue = Arrays.copyOf(queue, queue.length * 2);
+                    }
+                    queue[size] = e;
+                    size++;
+                    siftUp(size - 1);
+                }, () -> {
+                    throw new NullPointerException("Can't store null elements!");
+                });
         return true;
     }
 
     @Override
     public E poll() {
-        if (size == 0) {
-            return null;
-        }
-        E result = (E) queue[0];
-        queue[0] = queue[size - 1];
-        queue[size - 1] = null;
-        size--;
-        siftDown();
-        return result;
+        return Optional.ofNullable((E) queue[0])
+                .map(element -> {
+                    queue[0] = queue[size - 1];
+                    queue[size - 1] = null;
+                    size--;
+                    siftDown();
+                    return element;
+                })
+                .orElse(null);
     }
 
     @Override
     public E peek() {
-        if (size == 0) {
-            return null;
-        }
         return (E) queue[0];
+    }
+
+    @Override
+    public int size() {
+        return size;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return size == 0;
     }
 
     private void siftUp(int i) {
@@ -97,20 +113,10 @@ public class MyPriorityQueueImpl<E> implements MyPriorityQueue<E> {
         }
     }
 
-    @Override
-    public int size() {
-        return size;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
     private int compare(int i, int j) {
-        return comparator == null
-                ? ((Comparable<? super E>) queue[i]).compareTo((E) queue[j])
-                : comparator.compare((E) queue[i], (E) queue[j]);
+        return Optional.ofNullable(comparator)
+                .orElseGet(() -> (e1, e2) -> ((Comparable<? super E>) e1).compareTo((E) e2))
+                .compare((E) queue[i], (E) queue[j]);
     }
 
     private void swap(int i, int j) {
