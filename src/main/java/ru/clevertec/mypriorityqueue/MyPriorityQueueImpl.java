@@ -115,7 +115,12 @@ public class MyPriorityQueueImpl<E> implements MyPriorityQueue<E> {
 
     private int compare(int i, int j) {
         return Optional.ofNullable(comparator)
-                .orElseGet(() -> (e1, e2) -> ((Comparable<? super E>) e1).compareTo((E) e2))
+                .orElseGet(() -> (e1, e2) -> {
+                    if (!(e1 instanceof Comparable)) {
+                        throw new ClassCastException("Object " + e1 + " does not implement Comparable interface");
+                    }
+                    return ((Comparable<? super E>) e1).compareTo((E) e2);
+                })
                 .compare((E) queue[i], (E) queue[j]);
     }
 

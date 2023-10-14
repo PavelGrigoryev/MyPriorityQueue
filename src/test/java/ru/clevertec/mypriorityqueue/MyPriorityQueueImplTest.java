@@ -98,13 +98,16 @@ class MyPriorityQueueImplTest {
         }
 
         @Test
-        void testAddShouldThrowClassCastExceptionIfClassIsNotImplementsComparable() {
+        void testAddShouldThrowClassCastExceptionWithExpectedMessageIfClassIsNotImplementsComparable() {
             PersonWithoutComparable person1 = new PersonWithoutComparable(1L, "Ivan");
             PersonWithoutComparable person2 = new PersonWithoutComparable(2L, "Sveta");
-
+            String expectedMessage = "Object " + person2 + " does not implement Comparable interface";
             noArgsQueue.add(person1);
 
-            assertThrows(ClassCastException.class, () -> noArgsQueue.add(person2));
+            Exception exception = assertThrows(ClassCastException.class, () -> noArgsQueue.add(person2));
+            String actualMessage = exception.getMessage();
+
+            assertThat(actualMessage).isEqualTo(expectedMessage);
         }
 
         @Test
