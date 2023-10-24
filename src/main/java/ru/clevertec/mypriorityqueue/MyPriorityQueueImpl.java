@@ -8,18 +8,18 @@ import java.util.Optional;
 @SuppressWarnings("unchecked")
 public class MyPriorityQueueImpl<E> implements MyPriorityQueue<E> {
 
-    private Object[] queue;
+    private E[] queue;
     private int size;
     private static final int DEFAULT_CAPACITY = 8;
     private Comparator<? super E> comparator;
 
     public MyPriorityQueueImpl() {
-        queue = new Object[DEFAULT_CAPACITY];
+        queue = (E[]) new Object[DEFAULT_CAPACITY];
         size = 0;
     }
 
     public MyPriorityQueueImpl(Comparator<? super E> comparator) {
-        queue = new Object[DEFAULT_CAPACITY];
+        queue = (E[]) new Object[DEFAULT_CAPACITY];
         size = 0;
         this.comparator = comparator;
     }
@@ -28,7 +28,7 @@ public class MyPriorityQueueImpl<E> implements MyPriorityQueue<E> {
         Optional.of(capacity)
                 .filter(integer -> integer > 0)
                 .ifPresentOrElse(integer -> {
-                    queue = new Object[integer];
+                    queue = (E[]) new Object[integer];
                     size = 0;
                 }, () -> {
                     throw new IllegalArgumentException("Capacity must be greater than 0 !");
@@ -39,7 +39,7 @@ public class MyPriorityQueueImpl<E> implements MyPriorityQueue<E> {
         Optional.of(capacity)
                 .filter(integer -> integer > 0)
                 .ifPresentOrElse(integer -> {
-                    queue = new Object[integer];
+                    queue = (E[]) new Object[integer];
                     size = 0;
                     this.comparator = comparator;
                 }, () -> {
@@ -65,20 +65,19 @@ public class MyPriorityQueueImpl<E> implements MyPriorityQueue<E> {
 
     @Override
     public E poll() {
-        return Optional.ofNullable((E) queue[0])
-                .map(element -> {
-                    queue[0] = queue[size - 1];
-                    queue[size - 1] = null;
-                    size--;
-                    siftDown();
-                    return element;
-                })
-                .orElse(null);
+        E element = queue[0];
+        if (element != null) {
+            queue[0] = queue[size - 1];
+            queue[size - 1] = null;
+            size--;
+            siftDown();
+        }
+        return element;
     }
 
     @Override
     public E peek() {
-        return (E) queue[0];
+        return queue[0];
     }
 
     @Override
@@ -121,11 +120,11 @@ public class MyPriorityQueueImpl<E> implements MyPriorityQueue<E> {
                     }
                     return ((Comparable<? super E>) e1).compareTo((E) e2);
                 })
-                .compare((E) queue[i], (E) queue[j]);
+                .compare(queue[i], queue[j]);
     }
 
     private void swap(int i, int j) {
-        Object temp = queue[i];
+        E temp = queue[i];
         queue[i] = queue[j];
         queue[j] = temp;
     }
